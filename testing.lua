@@ -462,10 +462,13 @@ function Library:CreateWindow(config)
 	container.BackgroundTransparency = 1
 	container.AutomaticSize = Enum.AutomaticSize.Y
 	container.Parent = content
+	
+	-- ✅ PERBAIKAN DI SINI: UDim2.new diganti menjadi UDim.new
 	local containerList = Instance.new("UIListLayout")
 	containerList.SortOrder = Enum.SortOrder.LayoutOrder
-	containerList.Padding = UDim2.new(0, 8)
+	containerList.Padding = UDim.new(0, 8) 
 	containerList.Parent = container
+	
 	local spacer = Instance.new("Frame")
 	spacer.Size = UDim2.new(1, 0, 0, 2)
 	spacer.BackgroundTransparency = 1
