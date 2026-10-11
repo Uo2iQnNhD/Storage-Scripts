@@ -28,6 +28,7 @@ local H_ELEMENT = 38
 local H_SLIDER = 46
 local H_SECTION = 20
 local H_TAB = 34
+local TOPBAR_H = 68
 
 --// Lucide Icons (sumber: lucideblox community port)
 Library.Lucide = {
@@ -234,7 +235,7 @@ function Library:CreateWindow(config)
 	config = config or {}
 	local title = config.Title or "ZETHUB"
 	local subtitle = config.Subtitle or "V5 • YinYang Edition"
-	local OPEN_SIZE = UDim2.new(0, 560, 0, 400)
+	local OPEN_SIZE = UDim2.new(0, 560, 0, 430)
 
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "ZethHubV5"
@@ -299,13 +300,13 @@ function Library:CreateWindow(config)
 
 	-- Topbar
 	local topbar = Instance.new("Frame")
-	topbar.Size = UDim2.new(1, 0, 0, 46)
+	topbar.Size = UDim2.new(1, 0, 0, TOPBAR_H)
 	topbar.BackgroundTransparency = 1
 	topbar.ZIndex = 45
 	topbar.Parent = main
 	local titleLbl = Instance.new("TextLabel")
 	titleLbl.Size = UDim2.new(0.6, 0, 0, 18)
-	titleLbl.Position = UDim2.new(0, 16, 0, 7)
+	titleLbl.Position = UDim2.new(0, 16, 0, 8)
 	titleLbl.BackgroundTransparency = 1
 	titleLbl.Text = title
 	titleLbl.TextColor3 = Theme.Text
@@ -315,7 +316,7 @@ function Library:CreateWindow(config)
 	titleLbl.Parent = topbar
 	local subLbl = Instance.new("TextLabel")
 	subLbl.Size = UDim2.new(0.6, 0, 0, 14)
-	subLbl.Position = UDim2.new(0, 16, 0, 25)
+	subLbl.Position = UDim2.new(0, 16, 0, 28)
 	subLbl.BackgroundTransparency = 1
 	subLbl.Text = subtitle
 	subLbl.TextColor3 = Theme.SubText
@@ -323,6 +324,22 @@ function Library:CreateWindow(config)
 	subLbl.Font = Enum.Font.Gotham
 	subLbl.TextXAlignment = Enum.TextXAlignment.Left
 	subLbl.Parent = topbar
+
+	--// WindUI-style Tag Row
+	local tagRow = Instance.new("Frame")
+	tagRow.Size = UDim2.new(1, -110, 0, 22)
+	tagRow.Position = UDim2.new(0, 16, 0, 44)
+	tagRow.BackgroundTransparency = 1
+	tagRow.ZIndex = 46
+	tagRow.Active = false
+	tagRow.Parent = topbar
+	local tagLayout = Instance.new("UIListLayout")
+	tagLayout.FillDirection = Enum.FillDirection.Horizontal
+	tagLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	tagLayout.Padding = UDim.new(0, 6)
+	tagLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	tagLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+	tagLayout.Parent = tagRow
 
 	local function iconButton(xoff, kind)
 		local b = Instance.new("TextButton")
@@ -365,6 +382,82 @@ function Library:CreateWindow(config)
 	function window:onAccent(fn) table.insert(self.listeners, fn) fn(self.accent) end
 	function window:SetAccent(c) self.accent = c for _, fn in ipairs(self.listeners) do fn(c) end end
 
+	--// Add Tag API
+	function window:AddTag(cfg)
+		cfg = cfg or {}
+		local lbl = Instance.new("TextLabel")
+		lbl.Size = UDim2.new(0, 0, 0, 22)
+		lbl.AutomaticSize = Enum.AutomaticSize.X
+		lbl.BackgroundColor3 = cfg.Color or window.accent
+		lbl.BorderSizePixel = 0
+		lbl.Text = cfg.Text or cfg.Name or cfg.Title or "Tag"
+		lbl.TextColor3 = cfg.TextColor or cfg.TextColor3 or Color3.fromRGB(0, 0, 0)
+		lbl.TextSize = 11
+		lbl.Font = Enum.Font.GothamBold
+		lbl.TextXAlignment = Enum.TextXAlignment.Center
+		lbl.TextWrapped = false
+		lbl.ZIndex = 47
+		lbl.Active = false
+		lbl.Parent = tagRow
+		Corner(lbl, 99)
+		Pad(lbl, 0, 10, 0, 10)
+		if cfg.FollowAccent then
+			window:onAccent(function(c) lbl.BackgroundColor3 = c end)
+		end
+		return lbl
+	end
+
+	local tagCount = 0
+	local function addConfigTag(v)
+		tagCount += 1
+		local index = tagCount
+		if type(v) == "string" then v = {Text = v} end
+
+		local bg = v.Color or v.BackgroundColor3
+		local followAccent = false
+		if not bg then
+			if index == 1 then
+				bg = Color3.fromRGB(255, 204, 0)
+			elseif index == 2 then
+				bg = Color3.fromRGB(46, 230, 110)
+			else
+				bg = window.accent
+				followAccent = true
+			end
+		end
+
+		local tc = v.TextColor or v.TextColor3
+		if not tc then
+			local bright = (bg.R + bg.G + bg.B) / 3
+			tc = bright > 0.62 and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(255, 255, 255)
+		end
+
+		window:AddTag({
+			Text = v.Text or v.Name or v.Title or "Tag",
+			Color = bg,
+			TextColor = tc,
+			FollowAccent = followAccent,
+		})
+	end
+
+	local tagsConfig = config.Tags
+	if tagsConfig == nil then
+		tagsConfig = {
+			{Text = "V5", Color = Color3.fromRGB(255, 204, 0), TextColor = Color3.fromRGB(0, 0, 0)},
+			{Text = "UI Library", Color = Color3.fromRGB(46, 230, 110), TextColor = Color3.fromRGB(0, 0, 0)},
+		}
+	end
+
+	if tagsConfig ~= false and type(tagsConfig) == "table" then
+		if tagsConfig.Text or tagsConfig.Name or tagsConfig.Title then
+			addConfigTag(tagsConfig)
+		else
+			for _, v in ipairs(tagsConfig) do
+				addConfigTag(v)
+			end
+		end
+	end
+
 	-- Resize handle (sudut kanan bawah, presisi)
 	local resizeHandle = Instance.new("TextButton")
 	resizeHandle.Size = UDim2.new(0, 14, 0, 14)
@@ -392,7 +485,7 @@ function Library:CreateWindow(config)
 	UserInputService.InputChanged:Connect(function(inp)
 		if resizing and inp.UserInputType == Enum.UserInputType.MouseMovement then
 			local d = inp.Position - resizeStart
-			main.Size = UDim2.new(0, math.clamp(resizeOrig.X.Offset + d.X, 460, 1100), 0, math.clamp(resizeOrig.Y.Offset + d.Y, 320, 760))
+			main.Size = UDim2.new(0, math.clamp(resizeOrig.X.Offset + d.X, 460, 1100), 0, math.clamp(resizeOrig.Y.Offset + d.Y, 360, 760))
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(inp)
@@ -422,8 +515,8 @@ function Library:CreateWindow(config)
 
 	-- Sidebar
 	local sidebar = Instance.new("Frame")
-	sidebar.Size = UDim2.new(0, 150, 1, -46)
-	sidebar.Position = UDim2.new(0, 0, 0, 46)
+	sidebar.Size = UDim2.new(0, 150, 1, -TOPBAR_H)
+	sidebar.Position = UDim2.new(0, 0, 0, TOPBAR_H)
 	sidebar.BackgroundColor3 = Theme.Sidebar
 	sidebar.BorderSizePixel = 0
 	sidebar.ZIndex = 41
@@ -431,7 +524,7 @@ function Library:CreateWindow(config)
 	Corner(sidebar, 10)
 	local sideTop = Instance.new("Frame")
 	sideTop.Size = UDim2.new(1, 0, 0, 12)
-	sideTop.Position = UDim2.new(0, 0, 0, 46)
+	sideTop.Position = UDim2.new(0, 0, 0, TOPBAR_H)
 	sideTop.BackgroundColor3 = Theme.Sidebar
 	sideTop.BorderSizePixel = 0
 	sideTop.ZIndex = 41
@@ -444,8 +537,8 @@ function Library:CreateWindow(config)
 
 	-- Content
 	local content = Instance.new("ScrollingFrame")
-	content.Size = UDim2.new(1, -150, 1, -58)
-	content.Position = UDim2.new(0, 150, 0, 46)
+	content.Size = UDim2.new(1, -150, 1, -(TOPBAR_H + 12))
+	content.Position = UDim2.new(0, 150, 0, TOPBAR_H)
 	content.BackgroundTransparency = 1
 	content.BorderSizePixel = 0
 	content.ScrollBarThickness = 3
