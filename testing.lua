@@ -28,7 +28,7 @@ local H_ELEMENT = 38
 local H_SLIDER = 46
 local H_SECTION = 20
 local H_TAB = 34
-local TOPBAR_H = 68
+local TOPBAR_H = 58
 
 --// Lucide Icons (sumber: lucideblox community port)
 Library.Lucide = {
@@ -235,7 +235,7 @@ function Library:CreateWindow(config)
 	config = config or {}
 	local title = config.Title or "ZETHUB"
 	local subtitle = config.Subtitle or "V5 • YinYang Edition"
-	local OPEN_SIZE = UDim2.new(0, 560, 0, 430)
+	local OPEN_SIZE = UDim2.new(0, 560, 0, 420)
 
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "ZethHubV5"
@@ -304,35 +304,59 @@ function Library:CreateWindow(config)
 	topbar.BackgroundTransparency = 1
 	topbar.ZIndex = 45
 	topbar.Parent = main
+
+	-- Title + Tag row (tag di samping kanan title)
+	local titleRow = Instance.new("Frame")
+	titleRow.Size = UDim2.new(1, -110, 0, 24)
+	titleRow.Position = UDim2.new(0, 16, 0, 7)
+	titleRow.BackgroundTransparency = 1
+	titleRow.ZIndex = 46
+	titleRow.Active = false
+	titleRow.Parent = topbar
+
+	local titleLayout = Instance.new("UIListLayout")
+	titleLayout.FillDirection = Enum.FillDirection.Horizontal
+	titleLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	titleLayout.Padding = UDim.new(0, 8)
+	titleLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	titleLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+	titleLayout.Parent = titleRow
+
 	local titleLbl = Instance.new("TextLabel")
-	titleLbl.Size = UDim2.new(0.6, 0, 0, 18)
-	titleLbl.Position = UDim2.new(0, 16, 0, 8)
+	titleLbl.Size = UDim2.new(0, 0, 0, 18)
+	titleLbl.AutomaticSize = Enum.AutomaticSize.X
 	titleLbl.BackgroundTransparency = 1
 	titleLbl.Text = title
 	titleLbl.TextColor3 = Theme.Text
 	titleLbl.TextSize = 15
 	titleLbl.Font = Enum.Font.GothamBold
 	titleLbl.TextXAlignment = Enum.TextXAlignment.Left
-	titleLbl.Parent = topbar
+	titleLbl.LayoutOrder = 1
+	titleLbl.ZIndex = 47
+	titleLbl.Parent = titleRow
+
 	local subLbl = Instance.new("TextLabel")
 	subLbl.Size = UDim2.new(0.6, 0, 0, 14)
-	subLbl.Position = UDim2.new(0, 16, 0, 28)
+	subLbl.Position = UDim2.new(0, 16, 0, 31)
 	subLbl.BackgroundTransparency = 1
 	subLbl.Text = subtitle
 	subLbl.TextColor3 = Theme.SubText
 	subLbl.TextSize = 11
 	subLbl.Font = Enum.Font.Gotham
 	subLbl.TextXAlignment = Enum.TextXAlignment.Left
+	subLbl.ZIndex = 46
 	subLbl.Parent = topbar
 
-	--// WindUI-style Tag Row
+	--// WindUI-style Tag Row (di kanan title)
 	local tagRow = Instance.new("Frame")
-	tagRow.Size = UDim2.new(1, -110, 0, 22)
-	tagRow.Position = UDim2.new(0, 16, 0, 44)
+	tagRow.Size = UDim2.new(0, 0, 0, 22)
+	tagRow.AutomaticSize = Enum.AutomaticSize.X
 	tagRow.BackgroundTransparency = 1
-	tagRow.ZIndex = 46
+	tagRow.ZIndex = 47
 	tagRow.Active = false
-	tagRow.Parent = topbar
+	tagRow.LayoutOrder = 2
+	tagRow.Parent = titleRow
+
 	local tagLayout = Instance.new("UIListLayout")
 	tagLayout.FillDirection = Enum.FillDirection.Horizontal
 	tagLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -349,6 +373,7 @@ function Library:CreateWindow(config)
 		b.BorderSizePixel = 0
 		b.Text = ""
 		b.AutoButtonColor = false
+		b.ZIndex = 48
 		b.Parent = topbar
 		Corner(b, 6)
 		if kind == "close" then
@@ -359,6 +384,7 @@ function Library:CreateWindow(config)
 				l.Rotation = rot
 				l.BackgroundColor3 = Theme.SubText
 				l.BorderSizePixel = 0
+				l.ZIndex = 49
 				l.Parent = b
 			end
 			b.MouseEnter:Connect(function() Tween(b, .2, {BackgroundColor3 = Color3.fromRGB(225, 70, 70)}) end)
@@ -369,6 +395,7 @@ function Library:CreateWindow(config)
 			l.Position = UDim2.new(0.5, -6, 0.5, -1)
 			l.BackgroundColor3 = Theme.SubText
 			l.BorderSizePixel = 0
+			l.ZIndex = 49
 			l.Parent = b
 			b.MouseEnter:Connect(function() Tween(b, .2, {BackgroundColor3 = Theme.ElementHover}) end)
 			b.MouseLeave:Connect(function() Tween(b, .2, {BackgroundColor3 = Theme.Element}) end)
@@ -474,6 +501,7 @@ function Library:CreateWindow(config)
 		d.Position = UDim2.new(1, -2, 1, -2 - i * 4)
 		d.BackgroundColor3 = Theme.SubText
 		d.BorderSizePixel = 0
+		d.ZIndex = 51
 		d.Parent = resizeHandle
 	end
 	local resizing, resizeStart, resizeOrig = false, nil, nil
@@ -485,7 +513,7 @@ function Library:CreateWindow(config)
 	UserInputService.InputChanged:Connect(function(inp)
 		if resizing and inp.UserInputType == Enum.UserInputType.MouseMovement then
 			local d = inp.Position - resizeStart
-			main.Size = UDim2.new(0, math.clamp(resizeOrig.X.Offset + d.X, 460, 1100), 0, math.clamp(resizeOrig.Y.Offset + d.Y, 360, 760))
+			main.Size = UDim2.new(0, math.clamp(resizeOrig.X.Offset + d.X, 460, 1100), 0, math.clamp(resizeOrig.Y.Offset + d.Y, 340, 760))
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(inp)
