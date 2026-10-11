@@ -479,6 +479,7 @@ function Library:CreateWindow(config)
 	--// Keybind List (kanan bawah, auto-hide saat kosong)
 	local kbEnabled = true
 	local kbRows = 0
+	local windowOpen = true -- ✅ TAMBAHAN: state apakah window sedang open atau hide
 	local KeybindList = Instance.new("Frame")
 	KeybindList.AnchorPoint = Vector2.new(1, 1)
 	KeybindList.Position = UDim2.new(1, -12, 1, -12)
@@ -517,7 +518,8 @@ function Library:CreateWindow(config)
 	kbBottomPad.PaddingBottom = UDim.new(0, 8)
 	kbBottomPad.Parent = KeybindList
 	local function refreshKbVis()
-		KeybindList.Visible = kbEnabled and kbRows > 0
+		-- ✅ PERBAIKAN: KeybindList hanya tampil jika window open, keybind list enabled, dan ada row
+		KeybindList.Visible = windowOpen and kbEnabled and kbRows > 0
 	end
 	function window:ToggleKeybindList(state)
 		kbEnabled = (state == nil) and not kbEnabled or state
@@ -1347,7 +1349,10 @@ function Library:CreateWindow(config)
 	function window:Toggle(force)
 		local open = (force ~= nil) and force or not Library.Open
 		Library.Open = open
+		windowOpen = open -- ✅ TAMBAHAN: update state window open/hide
+
 		if info then info.Visible = open end
+
 		if open then
 			main.Visible = true
 			Tween(main, .35, {Size = OPEN_SIZE}, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
@@ -1356,6 +1361,9 @@ function Library:CreateWindow(config)
 				if not Library.Open then main.Visible = false end
 			end)
 		end
+
+		refreshKbVis() -- ✅ PERBAIKAN: KeybindList ikut hide/show bersama UI dan info FPS/Ping
+
 		setMiniIcon(open)
 		setMiniLabel(open)
 	end
